@@ -20,7 +20,7 @@ source /home/codespace/.bashrc
 foundryup
 
 # Start Foundry Project
-forge init 
+forge init --force
 
 # Start Solidity Contract
 rm src/Counter.sol
@@ -50,6 +50,9 @@ print_command "Generating .env file..."
 cat <<EOF > .env
 PRIVATE_KEY=$PRIVATE_KEY
 EOF
+
+# load .env
+export $(grep -v '^#' .env | xargs)
 
 # Deploy contract
 forge create src/Contract.sol:SimpleStorage \
