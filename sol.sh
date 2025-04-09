@@ -51,14 +51,33 @@ cat <<EOF > .env
 PRIVATE_KEY=$PRIVATE_KEY
 EOF
 
-# load .env
+# Deploy contract
 export $(grep -v '^#' .env | xargs)
 
-# Deploy contract
-forge create src/Contract.sol:SimpleStorage \
+ADDRESS=$(forge create src/Contract.sol:SimpleStorage \
   --private-key "$PRIVATE_KEY" \
   --rpc-url https://rpc.dev.gblend.xyz/ \
-  --broadcast
+  --broadcast \
+  --json | jq -r '.deployedTo')
+
+echo "$ADDRESS" > contract-address.txt
+echo "✅ Deployed to: $ADDRESS"
+
+sleep 3
+
+# Verify contract
+export $(grep -v '^#' .env | xargs)
+
+ADDRESS=$(cat contract-address.txt)
+
+forge verify-contract \
+  --rpc-url https://rpc.dev.gblend.xyz/ \
+  "$ADDRESS" \
+  src/Contract.sol:SimpleStorage \
+  --verifier blockscout \
+  --verifier-url https://blockscout.dev.gblend.xyz/api/
+
+  
 
 
 
