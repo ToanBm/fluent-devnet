@@ -23,8 +23,14 @@ foundryup
 forge init --force
 
 # Set contract:
-read -p "Enter token symbol (e.g., FLN): " TOKEN_SYMBOL
-read -p "Enter total supply (e.g., 1000000): " TOTAL_SUPPLY
+# Random symbol
+TOKEN_SYMBOL=$(tr -dc A-Z </dev/urandom | head -c 3)
+
+# Random total supply (1_000_000 → 9_000_000)
+TOTAL_SUPPLY=$(( (RANDOM % 9 + 1) * 1000000 ))
+
+echo "🪙 Symbol: $TOKEN_SYMBOL"
+echo "💰 Total Supply: $TOTAL_SUPPLY"
 
 # Start Solidity Contract
 rm src/Counter.sol
