@@ -77,6 +77,10 @@ forge verify-contract \
   --verifier blockscout \
   --verifier-url https://blockscout.dev.gblend.xyz/api/
 
+echo "✅ Done!"
+echo "🔗 Check your contract:"
+echo "https://blockscout.dev.gblend.xyz/address/$ADDRESS"
+
   
 
 
