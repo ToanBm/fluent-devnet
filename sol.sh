@@ -74,7 +74,7 @@ cat <<EOF > .env
 PRIVATE_KEY=$PRIVATE_KEY
 EOF
 
-# Deploy contract
+# 1. Deploy contract
 export $(grep -v '^#' .env | xargs)
 
 ADDRESS=$(forge create src/MyToken.sol:MyToken \
@@ -88,7 +88,7 @@ echo "✅ Deployed to: $ADDRESS"
 
 sleep 3
 
-# Verify contract
+# 2. Verify contract
 export $(grep -v '^#' .env | xargs)
 
 ADDRESS=$(cat contract-address.txt)
@@ -103,6 +103,28 @@ forge verify-contract \
 echo "✅ Done!"
 echo "🔗 Check your contract:"
 echo "https://blockscout.dev.gblend.xyz/address/$ADDRESS"
+
+# 3. Transfer token
+# Random wallet
+TO_ADDRESS="0x$(tr -dc 'a-f0-9' < /dev/urandom | head -c 40)"
+
+# Random amount from 1000 to 100000
+AMOUNT=$(( (RANDOM % 99001) + 1000 ))
+echo "🔢 Amount of tokens to send: $AMOUNT"
+
+# Load environment variables and contract address
+export $(grep -v '^#' .env | xargs)
+export CONTRACT_ADDRESS=$(cat contract-address.txt)
+
+# Send tokens using Foundry's cast
+cast send $CONTRACT_ADDRESS \
+  "transfer(address,uint256)" $TO_ADDRESS $AMOUNT \
+  --private-key $PRIVATE_KEY \
+  --rpc-url https://rpc.dev.gblend.xyz/
+
+
+
+
 
   
 
