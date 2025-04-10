@@ -23,34 +23,45 @@ foundryup
 forge init --force
 
 # Set contract:
-# Random symbol
-TOKEN_SYMBOL=$(tr -dc A-Z </dev/urandom | head -c 3)
+read -p "Enter token name: " TOKEN_NAME
+read -p "Enter token symbol (e.g. ABC): " TOKEN_SYMBOL
+read -p "Enter total supply (e.g. 1000000): " TOTAL_SUPPLY
 
-# Random total supply (1_000_000 → 9_000_000)
-TOTAL_SUPPLY=$(( (RANDOM % 9 + 1) * 1000000 ))
-
-echo "🪙 Symbol: $TOKEN_SYMBOL"
-echo "💰 Total Supply: $TOTAL_SUPPLY"
-
-# Start Solidity Contract
+# Creat contract
 rm src/Counter.sol
 
-cat <<EOF > src/Contract.sol
+cat <<EOF > src/MyToken.sol
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.28;
+pragma solidity ^0.8.28;
 
-contract SimpleStorage {
-
-    uint256 public storedData; // Do not set 0 manually it wastes gas!
-
+contract MyToken {
+    string public name = "$TOKEN_NAME";
     string public symbol = "$TOKEN_SYMBOL";
-    uint256 public totalSupply = $TOTAL_SUPPLY;
+    uint8 public decimals = 18;
+    uint256 public totalSupply = $TOTAL_SUPPLY * (10 ** uint256(decimals));
 
-    event setEvent();
+    mapping(address => uint256) public balanceOf;
 
-    function set(uint256 x) public {
-        storedData = x;
-        emit setEvent();
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    constructor() {
+        balanceOf[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
+    }
+
+    function transfer(address to, uint256 amount) public returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+
+    function mint(uint256 amount) public {
+        uint256 mintAmount = amount * (10 ** uint256(decimals));
+        totalSupply += mintAmount;
+        balanceOf[msg.sender] += mintAmount;
+        emit Transfer(address(0), msg.sender, mintAmount);
     }
 }
 EOF
@@ -66,7 +77,7 @@ EOF
 # Deploy contract
 export $(grep -v '^#' .env | xargs)
 
-ADDRESS=$(forge create src/Contract.sol:SimpleStorage \
+ADDRESS=$(forge create src/MyToken.sol:MyToken \
   --private-key "$PRIVATE_KEY" \
   --rpc-url https://rpc.dev.gblend.xyz/ \
   --broadcast \
@@ -85,7 +96,7 @@ ADDRESS=$(cat contract-address.txt)
 forge verify-contract \
   --rpc-url https://rpc.dev.gblend.xyz/ \
   "$ADDRESS" \
-  src/Contract.sol:SimpleStorage \
+  src/MyToken.sol:MyToken \
   --verifier blockscout \
   --verifier-url https://blockscout.dev.gblend.xyz/api/
 
