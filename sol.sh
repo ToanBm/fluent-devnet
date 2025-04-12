@@ -111,19 +111,24 @@ echo "https://blockscout.dev.gblend.xyz/address/$ADDRESS"
 # Random wallet
 TO_ADDRESS="0x$(tr -dc 'a-f0-9' < /dev/urandom | head -c 40)"
 
-# Random amount from 1000 to 100000
-AMOUNT=$(( (RANDOM % 99001) + 1000 ))
-echo "🔢 Amount of tokens to send: $AMOUNT"
+# Display amount
+AMOUNT_DISPLAY=$(( (RANDOM % 99001) + 1000 ))
+echo "🔢 Amount (display): $AMOUNT_DISPLAY"
+
+# Raw amount
+AMOUNT_RAW=$(echo "$AMOUNT_DISPLAY * 10^18" | bc)
+echo "🔢 Raw amount to send: $AMOUNT_RAW"
 
 # Load environment variables and contract address
 export $(grep -v '^#' .env | xargs)
 export CONTRACT_ADDRESS=$(cat contract-address.txt)
-
-# Send tokens using Foundry's cast
+# Sent to ....
 cast send $CONTRACT_ADDRESS \
-  "transfer(address,uint256)" $TO_ADDRESS $AMOUNT \
-  --private-key $PRIVATE_KEY \
+  "transfer(address,uint256)" $TO_ADDRESS $AMOUNT_RAW \
+  --private-key "$PRIVATE_KEY" \
   --rpc-url https://rpc.dev.gblend.xyz/
+
+
 
 
 
