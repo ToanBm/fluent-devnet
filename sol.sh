@@ -128,6 +128,41 @@ cast send $CONTRACT_ADDRESS \
   --private-key "$PRIVATE_KEY" \
   --rpc-url https://rpc.dev.gblend.xyz/
 
+# Multi transfer token
+# Ask user to input number of transfers
+read -p "How many transfers do you want to make? " NUM_TRANSFERS
+
+# Set decimals (18 for standard ERC-20 tokens)
+DECIMALS=18
+DECIMAL_FACTOR=$((10 ** DECIMALS))
+
+# Loop through and transfer tokens multiple times
+for i in $(seq 1 $NUM_TRANSFERS)
+do
+    # Random wallet address (for testing purposes)
+    TO_ADDRESS="0x$(tr -dc 'a-f0-9' < /dev/urandom | head -c 40)"
+    
+    # Random amount from 1000 to 100000 (Display)
+    AMOUNT_DISPLAY=$(( (RANDOM % 99001) + 1000 ))
+    echo "🔢 Transfer #$i: Amount (display): $AMOUNT_DISPLAY"
+
+    # Convert to the proper amount considering decimals
+    AMOUNT_RAW=$(( AMOUNT_DISPLAY * DECIMAL_FACTOR ))
+    
+    # Send transaction
+    cast send $CONTRACT_ADDRESS \
+        "transfer(address,uint256)" $TO_ADDRESS $AMOUNT_RAW \
+        --private-key $PRIVATE_KEY \
+        --rpc-url https://rpc.dev.gblend.xyz/
+
+    # Random delay between 10 and 20 seconds
+    SLEEP_TIME=$(( (RANDOM % 11) + 10 ))  # Random number between 10 and 20
+    echo "⏳ Waiting for $SLEEP_TIME seconds before the next transfer..."
+    sleep $SLEEP_TIME
+done
+
+echo "✅ All transfers completed!"
+
 
 
 
