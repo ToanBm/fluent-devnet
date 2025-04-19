@@ -16,9 +16,9 @@ print_command() {
 
 # Install Foundry:
 curl -L https://foundry.paradigm.xyz | bash
-source /home/codespace/.bashrc
+export PATH="$HOME/.foundry/bin:$PATH"
 
-sleep 5
+sleep 3
 
 foundryup
 
